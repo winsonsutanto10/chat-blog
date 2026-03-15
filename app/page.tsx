@@ -42,16 +42,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <div className="max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#FB5607]/20 text-[#FF995D] text-xs font-semibold rounded-full border border-[#FB5607]/30 mb-5 uppercase tracking-widest">
             <span className="w-1.5 h-1.5 rounded-full bg-[#FB5607] animate-pulse" />
-            Developer Blog
+            Personal Blog
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-4">
-            Ideas Worth{" "}
-            <span className="text-[#FFBE0B]">Writing</span>{" "}
-            About
+            Thoughts Worth{" "}
+            <span className="text-[#FFBE0B]">Sharing</span>
           </h1>
           <p className="text-[#FF995D] text-lg max-w-xl mx-auto leading-relaxed">
-            Deep dives, tutorials, and opinions on modern web development.
-            Written by developers, for developers.
+            A personal space for ideas, stories, and things I find worth writing about.
           </p>
         </div>
       </section>
