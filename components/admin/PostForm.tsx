@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { createPost, updatePost } from "@/app/actions/posts";
 
 interface PostFormData {
   title: string;
@@ -14,8 +16,8 @@ interface PostFormData {
 }
 
 interface PostFormProps {
+  postId?: string;
   initialData?: Partial<PostFormData>;
-  onSubmit?: (data: PostFormData) => void;
 }
 
 function slugify(text: string) {
@@ -27,7 +29,8 @@ function slugify(text: string) {
     .trim();
 }
 
-export default function PostForm({ initialData, onSubmit }: PostFormProps) {
+export default function PostForm({ postId, initialData }: PostFormProps) {
+  const router = useRouter();
   const [form, setForm] = useState<PostFormData>({
     title: initialData?.title ?? "",
     slug: initialData?.slug ?? "",
@@ -41,6 +44,7 @@ export default function PostForm({ initialData, onSubmit }: PostFormProps) {
   const [slugEdited, setSlugEdited] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle");
+  const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
 
   useEffect(() => {
@@ -63,12 +67,25 @@ export default function PostForm({ initialData, onSubmit }: PostFormProps) {
   const removeTag = (tag: string) =>
     set("tags", form.tags.filter((t) => t !== tag));
 
-  const handleSave = (status: "draft" | "published") => {
+  const handleSave = async (status: "draft" | "published") => {
     setSaved("saving");
+    setError("");
     const data = { ...form, status };
-    onSubmit?.(data);
-    setTimeout(() => setSaved("saved"), 800);
-    setTimeout(() => setSaved("idle"), 3000);
+
+    const result = postId
+      ? await updatePost(postId, data)
+      : await createPost(data);
+
+    if (result.success) {
+      setSaved("saved");
+      setTimeout(() => setSaved("idle"), 3000);
+      if (!postId) {
+        router.push(`/admin/posts/${result.id}/edit`);
+      }
+    } else {
+      setSaved("idle");
+      setError(result.error);
+    }
   };
 
   const wordCount = form.content.trim().split(/\s+/).filter(Boolean).length;
@@ -190,6 +207,12 @@ export default function PostForm({ initialData, onSubmit }: PostFormProps) {
               {form.status === "published" ? "Published" : "Draft"}
             </span>
           </div>
+
+          {error && (
+            <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3">
+              {error}
+            </p>
+          )}
 
           <div className="flex gap-2">
             <button

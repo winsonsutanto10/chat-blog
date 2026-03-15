@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { deletePost } from "@/app/actions/posts";
 
 interface DeletePostButtonProps {
   postId: string;
@@ -18,14 +19,15 @@ export default function DeletePostButton({
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
 
-  function handleDelete() {
+  async function handleDelete() {
     setDeleting(true);
-    // TODO: call delete API
-    setTimeout(() => {
-      setDeleting(false);
-      setShowModal(false);
+    const result = await deletePost(postId);
+    setDeleting(false);
+    setShowModal(false);
+    if (result.success) {
       router.push("/admin/posts");
-    }, 800);
+      router.refresh();
+    }
   }
 
   return (

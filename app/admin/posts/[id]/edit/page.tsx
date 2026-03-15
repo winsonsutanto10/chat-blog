@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getPostById } from "@/lib/mock-data";
+import { getPostById } from "@/db/queries/posts";
 import PostForm from "@/components/admin/PostForm";
 import DeletePostButton from "@/components/admin/DeletePostButton";
 
@@ -10,9 +10,11 @@ interface EditPostPageProps {
 
 export default async function EditPostPage({ params }: EditPostPageProps) {
   const { id } = await params;
-  const post = getPostById(id);
+  const row = await getPostById(id);
 
-  if (!post) notFound();
+  if (!row) notFound();
+
+  const { posts: post, authors: author } = row;
 
   const initialData = {
     title: post.title,
@@ -21,7 +23,7 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     content: post.content.trim(),
     coverImage: post.coverImage,
     tags: post.tags,
-    status: "published" as const,
+    status: post.status,
   };
 
   return (
@@ -48,23 +50,21 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-2xl font-bold text-[#38200D] truncate">{post.title}</h1>
-            <span className="flex-shrink-0 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-              Published
+            <span className={`flex-shrink-0 px-2.5 py-0.5 text-xs font-bold rounded-full ${
+              post.status === "published" ? "bg-green-100 text-green-700" : "bg-[#FFBE0B]/20 text-[#38200D]"
+            }`}>
+              {post.status === "published" ? "Published" : "Draft"}
             </span>
           </div>
           <div className="flex items-center gap-3 text-sm text-[#38200D]/40">
             <span>
-              By{" "}
-              <span className="font-medium text-[#38200D]/60">{post.author.name}</span>
+              By <span className="font-medium text-[#38200D]/60">{author?.name ?? "Unknown"}</span>
             </span>
             <span className="w-1 h-1 rounded-full bg-[#38200D]/20" />
             <span>
-              Published{" "}
-              {new Date(post.publishedAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
+              {post.status === "published" && post.publishedAt
+                ? `Published ${post.publishedAt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
+                : `Created ${post.createdAt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
             </span>
             <span className="w-1 h-1 rounded-full bg-[#38200D]/20" />
             <span>{post.readingTime} min read</span>
@@ -72,26 +72,26 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Link
-            href={`/blog/${post.slug}`}
-            target="_blank"
-            className="flex items-center gap-2 px-3 py-2 border border-[#38200D]/15 text-[#38200D]/60 text-sm font-medium rounded-xl hover:bg-[#38200D]/5 hover:text-[#38200D] transition-colors"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-            View Post
-          </Link>
+          {post.status === "published" && (
+            <Link
+              href={`/blog/${post.slug}`}
+              target="_blank"
+              className="flex items-center gap-2 px-3 py-2 border border-[#38200D]/15 text-[#38200D]/60 text-sm font-medium rounded-xl hover:bg-[#38200D]/5 hover:text-[#38200D] transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              View Post
+            </Link>
+          )}
           <DeletePostButton postId={post.id} postTitle={post.title} />
         </div>
       </div>
 
-      {/* Divider */}
       <div className="h-px bg-[#38200D]/8 mb-6" />
 
-      {/* Editor */}
-      <PostForm initialData={initialData} />
+      <PostForm postId={post.id} initialData={initialData} />
 
       {/* Danger zone */}
       <div className="mt-10 border border-red-200 rounded-2xl overflow-hidden">

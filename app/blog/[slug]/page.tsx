@@ -4,7 +4,7 @@ import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BlogCard from "@/components/BlogCard";
-import { getPostBySlug, mockPosts } from "@/lib/mock-data";
+import { getPostBySlug, getRelatedPosts, getAllPublishedSlugs } from "@/db/queries/posts";
 
 interface BlogDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -149,22 +149,17 @@ function renderContent(content: string) {
 }
 
 export async function generateStaticParams() {
-  return mockPosts.map((post) => ({ slug: post.slug }));
+  const slugs = await getAllPublishedSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) notFound();
 
-  const relatedPosts = mockPosts
-    .filter(
-      (p) =>
-        p.slug !== post.slug &&
-        p.tags.some((tag) => post.tags.includes(tag))
-    )
-    .slice(0, 3);
+  const relatedPosts = await getRelatedPosts(post.slug, post.tags);
 
   return (
     <div className="min-h-screen bg-[#FFF8F2]">
@@ -275,13 +270,25 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           </Link>
           <div className="flex items-center gap-2">
             <span className="text-[#38200D]/40 text-xs">Share:</span>
-            {["Twitter", "LinkedIn"].map((platform) => (
-              <button
-                key={platform}
-                className="px-3 py-1.5 bg-[#3A86FF] text-white text-xs font-semibold rounded-full hover:bg-[#3A86FF]/80 transition-colors cursor-pointer"
+            {[
+              {
+                label: "Twitter",
+                href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(`${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/blog/${post.slug}`)}`,
+              },
+              {
+                label: "LinkedIn",
+                href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/blog/${post.slug}`)}`,
+              },
+            ].map(({ label, href }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-[#3A86FF] text-white text-xs font-semibold rounded-full hover:bg-[#3A86FF]/80 transition-colors"
               >
-                {platform}
-              </button>
+                {label}
+              </a>
             ))}
           </div>
         </div>

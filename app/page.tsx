@@ -1,11 +1,37 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BlogCard from "@/components/BlogCard";
-import { getFeaturedPost, getRecentPosts } from "@/lib/mock-data";
+import TagFilter from "@/components/TagFilter";
+import { Suspense } from "react";
+import { getFeaturedPost, getAllPublishedPosts } from "@/db/queries/posts";
 
-export default function HomePage() {
-  const featuredPost = getFeaturedPost();
-  const otherPosts = getRecentPosts(featuredPost?.slug);
+interface HomePageProps {
+  searchParams: Promise<{ tag?: string }>;
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const { tag } = await searchParams;
+
+  const [featuredPost, allPosts] = await Promise.all([
+    getFeaturedPost(),
+    getAllPublishedPosts(),
+  ]);
+
+  // Build tag list sorted by post count
+  const tagCounts = allPosts.reduce<Record<string, number>>((acc, post) => {
+    post.tags.forEach((t) => { acc[t] = (acc[t] ?? 0) + 1; });
+    return acc;
+  }, {});
+  const tagList = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, count }));
+
+  // Filter posts by active tag
+  const filteredPosts = tag
+    ? allPosts.filter((p) => p.tags.includes(tag))
+    : allPosts.filter((p) => p.slug !== featuredPost?.slug);
+
+  const postCount = filteredPosts.length;
 
   return (
     <div className="min-h-screen bg-[#FFF8F2]">
@@ -32,8 +58,8 @@ export default function HomePage() {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-        {/* Featured Post */}
-        {featuredPost && (
+        {/* Featured Post — hidden when filtering by tag */}
+        {featuredPost && !tag && (
           <section className="mb-14">
             <div className="flex items-center gap-3 mb-5">
               <h2 className="text-[#38200D] text-xl font-bold">Featured Post</h2>
@@ -43,36 +69,38 @@ export default function HomePage() {
           </section>
         )}
 
-        {/* Recent Posts Grid */}
+        {/* Posts Grid */}
         <section>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
             <div className="flex items-center gap-3">
-              <h2 className="text-[#38200D] text-xl font-bold">Recent Posts</h2>
+              <h2 className="text-[#38200D] text-xl font-bold">
+                {tag ? (
+                  <>Posts tagged <span className="text-[#FB5607]">{tag}</span></>
+                ) : (
+                  "Recent Posts"
+                )}
+              </h2>
               <div className="px-2 py-0.5 bg-[#FB5607] text-white text-xs font-bold rounded-full">
-                {otherPosts.length}
+                {postCount}
               </div>
             </div>
-            <div className="hidden sm:flex gap-2">
-              {["All", "React", "Next.js", "TypeScript"].map((filter, i) => (
-                <button
-                  key={filter}
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors cursor-pointer ${
-                    i === 0
-                      ? "bg-[#FB5607] text-white"
-                      : "bg-white text-[#38200D]/60 border border-[#38200D]/10 hover:border-[#FB5607]/40 hover:text-[#FB5607]"
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
+
+            <Suspense>
+              <TagFilter tags={tagList} activeTag={tag ?? null} />
+            </Suspense>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {otherPosts.map((post) => (
-              <BlogCard key={post.id} post={post} />
-            ))}
-          </div>
+          {filteredPosts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPosts.map((post) => (
+                <BlogCard key={post.id} post={post} />
+              ))}
+            </div>
+          ) : (
+            <div className="py-20 text-center">
+              <p className="text-[#38200D]/40 text-sm">No posts found for &ldquo;{tag}&rdquo;.</p>
+            </div>
+          )}
         </section>
 
         {/* Newsletter CTA */}

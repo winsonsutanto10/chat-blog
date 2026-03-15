@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { mockPosts } from "@/lib/mock-data";
+import { getAllPosts } from "@/db/queries/posts";
 
 function StatCard({
   label,
@@ -26,13 +26,17 @@ function StatCard({
   );
 }
 
-export default function AdminDashboard() {
-  const totalPosts = mockPosts.length;
-  const publishedPosts = mockPosts.length; // all mock posts are published
-  const totalTags = [...new Set(mockPosts.flatMap((p) => p.tags))].length;
-  const totalReadingTime = mockPosts.reduce((acc, p) => acc + p.readingTime, 0);
+export default async function AdminDashboard() {
+  const rows = await getAllPosts();
+  const allPosts = rows.map((r) => r.posts);
+  const allAuthors = rows.map((r) => r.authors);
 
-  const recentPosts = mockPosts.slice(0, 5);
+  const totalPosts = allPosts.length;
+  const publishedPosts = allPosts.filter((p) => p.status === "published").length;
+  const totalTags = [...new Set(allPosts.flatMap((p) => p.tags))].length;
+  const totalReadingTime = allPosts.reduce((acc, p) => acc + p.readingTime, 0);
+
+  const recentRows = rows.slice(0, 5);
 
   return (
     <main className="flex-1 px-6 py-8 overflow-y-auto">
@@ -111,24 +115,26 @@ export default function AdminDashboard() {
             </Link>
           </div>
           <div className="divide-y divide-[#38200D]/5">
-            {recentPosts.map((post) => (
+            {recentRows.map(({ posts: post }) => (
               <div key={post.id} className="flex items-center gap-3 px-5 py-3 hover:bg-[#FFF8F2] transition-colors">
-                <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-[#FFF8F2]">
-                  <Image src={post.coverImage} alt={post.title} fill className="object-cover" />
-                </div>
+                {post.coverImage && (
+                  <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-[#FFF8F2]">
+                    <Image src={post.coverImage} alt={post.title} fill className="object-cover" />
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#38200D] truncate">{post.title}</p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-xs text-[#38200D]/40">
-                      {new Date(post.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {(post.publishedAt ?? post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                     </span>
                     <span className="w-1 h-1 rounded-full bg-[#38200D]/20" />
                     <span className="text-xs text-[#38200D]/40">{post.readingTime} min</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">
-                    Published
+                  <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${post.status === "published" ? "bg-green-100 text-green-700" : "bg-[#FFBE0B]/20 text-[#38200D]"}`}>
+                    {post.status === "published" ? "Published" : "Draft"}
                   </span>
                   <Link
                     href={`/admin/posts/${post.id}/edit`}
@@ -170,8 +176,8 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-2xl border border-[#38200D]/10 p-5">
             <h2 className="font-semibold text-[#38200D] mb-3">Tags Overview</h2>
             <div className="flex flex-wrap gap-1.5">
-              {[...new Set(mockPosts.flatMap((p) => p.tags))].map((tag) => {
-                const count = mockPosts.filter((p) => p.tags.includes(tag)).length;
+              {[...new Set(allPosts.flatMap((p) => p.tags))].map((tag) => {
+                const count = allPosts.filter((p) => p.tags.includes(tag)).length;
                 return (
                   <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#FFBE0B]/15 text-[#38200D] text-xs font-medium rounded-full border border-[#FFBE0B]/30">
                     {tag}

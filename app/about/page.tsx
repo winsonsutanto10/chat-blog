@@ -2,31 +2,38 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import Link from "next/link";
-import { mockPosts } from "@/lib/mock-data";
+import { getAuthor } from "@/db/queries/authors";
+import { getAllPublishedPosts } from "@/db/queries/posts";
 
-const about = {
-  name: "Your Name",
-  title: "Full-Stack Developer & Writer",
-  avatar: "https://i.pravatar.cc/150?img=47",
-  bio: "I'm a passionate developer who loves building things for the web. I write about modern web development, sharing what I learn along the way. When I'm not coding, you'll find me reading, hiking, or brewing coffee.",
-  longBio: [
-    "I started this blog as a way to document my learning journey through the world of modern web development. What began as personal notes has grown into a place where I share in-depth tutorials, opinions, and explorations.",
-    "I believe in learning in public — writing helps me solidify my understanding, and if it helps even one other developer along the way, that's a win.",
-    "My main areas of focus are Next.js, React, TypeScript, and everything in between. I'm also deeply interested in developer experience, tooling, and building fast, accessible web applications.",
-  ],
-  location: "San Francisco, CA",
-  email: "hello@yourblog.com",
-  skills: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Node.js", "PostgreSQL", "Drizzle ORM", "Git"],
-  social: {
-    twitter: "https://twitter.com/yourhandle",
-    github: "https://github.com/yourhandle",
-    linkedin: "https://linkedin.com/in/yourhandle",
-  },
-};
+export default async function AboutPage() {
+  const [author, posts] = await Promise.all([getAuthor(), getAllPublishedPosts()]);
 
-export default function AboutPage() {
-  const postCount = mockPosts.length;
-  const totalReadTime = mockPosts.reduce((acc, p) => acc + p.readingTime, 0);
+  if (!author) {
+    return (
+      <div className="min-h-screen bg-[#FFF8F2] flex items-center justify-center">
+        <p className="text-[#38200D]/50 text-sm">Profile not set up yet.</p>
+      </div>
+    );
+  }
+
+  const about = {
+    name: author.name,
+    title: author.title,
+    avatar: author.avatar,
+    bio: author.bio,
+    longBio: author.longBio.split("\n\n").filter(Boolean),
+    location: author.location,
+    email: author.email,
+    skills: author.skills,
+    social: {
+      twitter: author.socialTwitter,
+      github: author.socialGithub,
+      linkedin: author.socialLinkedin,
+    },
+  };
+
+  const postCount = posts.length;
+  const totalReadTime = posts.reduce((acc, p) => acc + p.readingTime, 0);
 
   return (
     <div className="min-h-screen bg-[#FFF8F2]">
@@ -87,7 +94,7 @@ export default function AboutPage() {
           {[
             { label: "Articles written", value: postCount },
             { label: "Minutes of content", value: `${totalReadTime}+` },
-            { label: "Topics covered", value: [...new Set(mockPosts.flatMap((p) => p.tags))].length },
+            { label: "Topics covered", value: [...new Set(posts.flatMap((p) => p.tags))].length },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -187,7 +194,7 @@ export default function AboutPage() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#38200D]/5">
               <h3 className="text-[#38200D] font-semibold mb-4">Latest Posts</h3>
               <div className="space-y-3">
-                {mockPosts.slice(0, 3).map((post) => (
+                {posts.slice(0, 3).map((post) => (
                   <Link
                     key={post.id}
                     href={`/blog/${post.slug}`}
