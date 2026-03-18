@@ -5,6 +5,7 @@ import { posts } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getAuthor } from "@/db/queries/authors";
+import { indexPost, removePostIndex } from "@/lib/embedding";
 
 interface PostFormData {
   title: string;
@@ -48,6 +49,13 @@ export async function createPost(data: PostFormData): Promise<ActionResult> {
       })
       .returning({ id: posts.id });
 
+    // Index immediately if published
+    if (data.status === "published") {
+      await indexPost(post.id, data.title, data.excerpt, data.content).catch(
+        (err) => console.error("[embedding] indexPost failed:", err)
+      );
+    }
+
     revalidatePath("/");
     revalidatePath("/admin/posts");
 
@@ -70,7 +78,6 @@ export async function updatePost(id: string, data: PostFormData): Promise<Action
       return { success: false, error: "Post not found." };
     }
 
-    // Set publishedAt only when first transitioning to published
     const wasPublished = existing[0].status === "published";
     const publishedAt =
       data.status === "published"
@@ -95,6 +102,17 @@ export async function updatePost(id: string, data: PostFormData): Promise<Action
       })
       .where(eq(posts.id, id));
 
+    // Re-index if published; remove index if moved back to draft
+    if (data.status === "published") {
+      await indexPost(id, data.title, data.excerpt, data.content).catch(
+        (err) => console.error("[embedding] indexPost failed:", err)
+      );
+    } else if (wasPublished) {
+      await removePostIndex(id).catch(
+        (err) => console.error("[embedding] removePostIndex failed:", err)
+      );
+    }
+
     revalidatePath("/");
     revalidatePath("/admin/posts");
     revalidatePath(`/blog/${data.slug}`);
@@ -109,6 +127,11 @@ export async function updatePost(id: string, data: PostFormData): Promise<Action
 
 export async function deletePost(id: string): Promise<ActionResult> {
   try {
+    // Chunks cascade-delete automatically via FK, but we log errors explicitly
+    await removePostIndex(id).catch(
+      (err) => console.error("[embedding] removePostIndex failed:", err)
+    );
+
     await db.delete(posts).where(eq(posts.id, id));
 
     revalidatePath("/");

@@ -166,16 +166,18 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
       <Header />
 
       {/* Cover Image */}
-      <div className="relative h-64 sm:h-80 lg:h-96 w-full">
-        <Image
-          src={post.coverImage}
-          alt={post.title}
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#38200D]/40 via-transparent to-[#FFF8F2]" />
-      </div>
+      {post.coverImage && (
+        <div className="relative h-64 sm:h-80 lg:h-96 w-full">
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#38200D]/40 via-transparent to-[#FFF8F2]" />
+        </div>
+      )}
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-10">
 

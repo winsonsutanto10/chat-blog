@@ -75,13 +75,15 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
   return (
     <Link href={`/blog/${post.slug}`} className="group block h-full">
       <div className="h-full flex flex-col rounded-2xl overflow-hidden border border-[#38200D]/10 bg-white hover:border-[#FB5607]/30 hover:shadow-xl hover:shadow-[#FB5607]/10 transition-all duration-300">
-        <div className="relative h-48 w-full overflow-hidden">
-          <Image
-            src={post.coverImage}
-            alt={post.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+        <div className="relative h-48 w-full overflow-hidden bg-[#FFF8F2]">
+          {post.coverImage && (
+            <Image
+              src={post.coverImage}
+              alt={post.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          )}
           <div className="absolute top-3 left-3 flex gap-1.5">
             {post.tags.slice(0, 1).map((tag) => (
               <span
