@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createPost, updatePost } from "@/app/actions/posts";
+import { WORDS_PER_MINUTE, SAVE_SUCCESS_MS } from "@/lib/constants";
 
 interface PostFormData {
   title: string;
@@ -78,7 +79,7 @@ export default function PostForm({ postId, initialData }: PostFormProps) {
 
     if (result.success) {
       setSaved("saved");
-      setTimeout(() => setSaved("idle"), 3000);
+      setTimeout(() => setSaved("idle"), SAVE_SUCCESS_MS);
       if (!postId) {
         router.push(`/admin/posts/${result.id}/edit`);
       }
@@ -89,7 +90,7 @@ export default function PostForm({ postId, initialData }: PostFormProps) {
   };
 
   const wordCount = form.content.trim().split(/\s+/).filter(Boolean).length;
-  const estimatedRead = Math.max(1, Math.ceil(wordCount / 200));
+  const estimatedRead = Math.max(1, Math.ceil(wordCount / WORDS_PER_MINUTE));
 
   return (
     <div className="flex gap-6 h-full">

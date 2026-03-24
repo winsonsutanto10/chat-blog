@@ -8,6 +8,7 @@ import {
   pgEnum,
   customType,
 } from "drizzle-orm/pg-core";
+import { EMBEDDING_DIMENSIONS } from "@/lib/constants";
 
 const vector = customType<{
   data: number[];
@@ -15,7 +16,7 @@ const vector = customType<{
   config: { dimensions: number };
 }>({
   dataType(config) {
-    return `vector(${config?.dimensions ?? 768})`;
+    return `vector(${config?.dimensions ?? EMBEDDING_DIMENSIONS})`;
   },
   toDriver(value: number[]): string {
     return `[${value.join(",")}]`;
@@ -70,7 +71,7 @@ export const postChunks = pgTable("post_chunks", {
     .references(() => posts.id, { onDelete: "cascade" }),
   chunkIndex: integer("chunk_index").notNull(),
   content: text("content").notNull(),
-  embedding: vector("embedding", { dimensions: 768 }),
+  embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

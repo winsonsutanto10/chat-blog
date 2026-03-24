@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { db } from "@/db";
 import { postChunks, posts } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { EMBEDDING_DIMENSIONS, RAG_CHUNK_LIMIT } from "@/lib/constants";
 
 const CHUNK_SIZE = 600;    // words per chunk
 const CHUNK_OVERLAP = 80;  // word overlap between adjacent chunks
@@ -36,7 +37,7 @@ async function embedText(text: string, taskType: "RETRIEVAL_DOCUMENT" | "RETRIEV
   const result = await model.embedContent({
     content: { parts: [{ text }], role: "user" },
     taskType: taskType as never,
-    outputDimensionality: 768,
+    outputDimensionality: EMBEDDING_DIMENSIONS,
   } as never);
   return result.embedding.values;
 }
@@ -85,7 +86,7 @@ export async function removePostIndex(postId: string): Promise<void> {
  */
 export async function searchSimilarChunks(
   query: string,
-  limit = 5
+  limit = RAG_CHUNK_LIMIT
 ): Promise<Array<{ content: string; postId: string; title: string; slug: string }>> {
   const queryEmbedding = await embedText(query, "RETRIEVAL_QUERY");
   const vectorStr = `[${queryEmbedding.join(",")}]`;

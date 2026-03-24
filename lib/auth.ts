@@ -3,3 +3,4 @@ export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD!;
 
 export const SESSION_COOKIE = "admin_session";
 export const SESSION_SECRET = process.env.SESSION_SECRET!;
+export const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days

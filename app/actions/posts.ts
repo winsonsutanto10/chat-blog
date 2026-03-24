@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getAuthor } from "@/db/queries/authors";
 import { indexPost, removePostIndex } from "@/lib/embedding";
+import { WORDS_PER_MINUTE } from "@/lib/constants";
 
 interface PostFormData {
   title: string;
@@ -23,7 +24,7 @@ type ActionResult =
 
 function estimateReadingTime(content: string): number {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.ceil(words / 200));
+  return Math.max(1, Math.ceil(words / WORDS_PER_MINUTE));
 }
 
 export async function createPost(data: PostFormData): Promise<ActionResult> {

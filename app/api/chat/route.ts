@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const userQuery = messages[messages.length - 1].content;
 
     // ── RAG: retrieve relevant chunks ───────────────────────────────────────
-    const chunks = await searchSimilarChunks(userQuery, 5);
+    const chunks = await searchSimilarChunks(userQuery);
 
     const context =
       chunks.length > 0

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { saveAuthor } from "@/app/actions/authors";
+import { SAVE_SUCCESS_MS } from "@/lib/constants";
 import type { Author } from "@/db/schema";
 
 interface AboutFormProps {
@@ -53,7 +54,7 @@ export default function AboutForm({ initialData }: AboutFormProps) {
     const result = await saveAuthor(form);
     if (result.success) {
       setSaved("saved");
-      setTimeout(() => setSaved("idle"), 3000);
+      setTimeout(() => setSaved("idle"), SAVE_SUCCESS_MS);
     } else {
       setSaved("idle");
       setError(result.error);

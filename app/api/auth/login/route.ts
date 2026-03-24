@@ -4,6 +4,7 @@ import {
   ADMIN_PASSWORD,
   SESSION_COOKIE,
   SESSION_SECRET,
+  SESSION_MAX_AGE,
 } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
@@ -20,10 +21,10 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
   response.cookies.set(SESSION_COOKIE, SESSION_SECRET, {
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    // 7-day session
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: SESSION_MAX_AGE,
   });
 
   return response;
