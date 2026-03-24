@@ -101,30 +101,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           )}
         </section>
 
-        {/* Newsletter CTA */}
-        <section className="mt-16 rounded-2xl bg-[#38200D] p-8 sm:p-12 text-center overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#FB5607]/10 rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#FFBE0B]/10 rounded-full -translate-x-1/3 translate-y-1/3 pointer-events-none" />
-          <div className="relative z-10">
-            <h3 className="text-white text-2xl sm:text-3xl font-bold mb-2">
-              Stay in the Loop
-            </h3>
-            <p className="text-[#FF995D] mb-6 max-w-md mx-auto">
-              Get the latest articles delivered straight to your inbox. No spam,
-              unsubscribe anytime.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="you@example.com"
-                className="flex-1 px-4 py-2.5 rounded-full bg-white/10 border border-white/20 text-white placeholder-white/40 text-sm focus:outline-none focus:border-[#FFBE0B]/60"
-              />
-              <button className="px-6 py-2.5 bg-[#FB5607] hover:bg-[#FF995D] text-white font-semibold text-sm rounded-full transition-colors whitespace-nowrap cursor-pointer">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />

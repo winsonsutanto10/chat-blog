@@ -34,22 +34,10 @@ export default function Header() {
               Home
             </Link>
             <Link
-              href="#"
-              className="text-[#FF995D] hover:text-[#FFBE0B] transition-colors text-sm font-medium"
-            >
-              Topics
-            </Link>
-            <Link
               href="/about"
               className="text-[#FF995D] hover:text-[#FFBE0B] transition-colors text-sm font-medium"
             >
               About
-            </Link>
-            <Link
-              href="#"
-              className="ml-2 px-4 py-1.5 bg-[#FB5607] text-white text-sm font-semibold rounded-full hover:bg-[#FF995D] transition-colors"
-            >
-              Write a Post
             </Link>
           </nav>
 
