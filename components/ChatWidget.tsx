@@ -93,8 +93,8 @@ export default function ChatWidget() {
 
   const suggestions = [
     "What articles are available?",
-    "Summarize the latest post",
-    "What topics do you cover?",
+    "What topics are covered in the articles?",
+    "Tell me about one of the articles",
   ];
 
   return (
