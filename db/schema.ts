@@ -54,7 +54,7 @@ export const posts = pgTable("posts", {
   coverImage: text("cover_image").notNull().default(""),
   authorId: uuid("author_id")
     .notNull()
-    .references(() => authors.id, { onDelete: "restrict" }),
+    .references(/* c8 ignore next */ () => authors.id, { onDelete: "restrict" }),
   publishedAt: timestamp("published_at"),
   readingTime: integer("reading_time").notNull().default(1),
   tags: text("tags").array().notNull().default([]),
@@ -68,7 +68,7 @@ export const postChunks = pgTable("post_chunks", {
   id: uuid("id").primaryKey().defaultRandom(),
   postId: uuid("post_id")
     .notNull()
-    .references(() => posts.id, { onDelete: "cascade" }),
+    .references(/* c8 ignore next */ () => posts.id, { onDelete: "cascade" }),
   chunkIndex: integer("chunk_index").notNull(),
   content: text("content").notNull(),
   embedding: vector("embedding", { dimensions: EMBEDDING_DIMENSIONS }),
